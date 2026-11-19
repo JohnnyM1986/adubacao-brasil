@@ -226,7 +226,7 @@
     if (!S.pol) return toast('Defina primeiro o talhão');
     recomendar(); const R = S.res; if (!R) return;
     const hoje = new Date().toLocaleDateString('pt-BR');
-    let clima = '<tr><td colspan="2">Não consultado (abra o passo 4 – Clima antes de gerar o relatório).</td></tr>';
+    let clima = '<tr><td colspan="2">Não consultado: abra o passo 4 – Clima antes de gerar o relatório para incluir gráficos e previsão.</td></tr>';
     if (S.clima) { const p = S.clima.properties.parameter, d = [31,28,31,30,31,30,31,31,30,31,30,31], M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
       clima = (S.bal ? `<tr><td>Deficiência hídrica anual</td><td>${S.bal.reduce((a, m) => a + m.DEF, 0).toFixed(0)} mm</td></tr>` : '') + `<tr><td>Chuva média anual</td><td>${M.reduce((a, m, i) => a + p.PRECTOTCORR[m] * d[i], 0).toFixed(0)} mm</td></tr><tr><td>Temperatura média anual</td><td>${p.T2M.ANN.toFixed(1)} °C</td></tr>`; }
     $('#relatorio').innerHTML = `
@@ -239,7 +239,10 @@
       <h2>Análise de solo (0–20 cm)</h2><table><tr><th>pH CaCl₂</th><th>M.O. g/dm³</th><th>P resina mg/dm³</th><th>K</th><th>Ca</th><th>Mg</th><th>H+Al</th><th>Al</th></tr>
         <tr><td>${num('ph')}</td><td>${num('mo')}</td><td>${num('P')}</td><td>${num('K')}</td><td>${num('Ca')}</td><td>${num('Mg')}</td><td>${num('HAl')}</td><td>${num('Al')}</td></tr></table>
       <div>SB ${R.s.SB.toFixed(1)} · CTC ${R.s.CTC.toFixed(1)} mmolc/dm³ · V% ${R.s.V.toFixed(0)}% · m% ${R.s.m.toFixed(0)}%</div><div class="f">Fonte: ${FONTE.soloCalc}</div>
-      <h2>Clima do local</h2><table>${clima}</table><div class="f">Fonte: ${FONTE.clima}${S.bal ? ' ' + FONTE.balanco_h : ''}</div>
+      <h2>Clima do local</h2><table>${clima}</table>
+      ${gClima ? `<div style="display:flex;gap:8px;margin-top:6px"><div style="flex:1"><div class="f"><b>Chuva e temperatura médias mensais</b></div><img src="${gClima.toBase64Image('image/png', 1)}" style="width:100%"></div>${gBal ? `<div style="flex:1"><div class="f"><b>Balanço hídrico (mm/mês)</b></div><img src="${gBal.toBase64Image('image/png', 1)}" style="width:100%"></div>` : ''}</div>` : ''}
+      <div class="f">Fonte: ${FONTE.clima}${S.bal ? ' ' + FONTE.balanco_h : ''}</div>
+      ${S.prev ? `<h2>Previsão do tempo (gerada em ${hoje})</h2><table><tr><th>Dia</th><th>Chuva</th><th>Prob.</th><th>Temp. mín–máx</th><th>Vento máx.</th></tr>${S.prev.time.map((t, i) => `<tr><td>${t.split('-').reverse().slice(0, 2).join('/')}</td><td>${S.prev.precipitation_sum[i].toFixed(1)} mm</td><td>${S.prev.precipitation_probability_max[i] ?? '–'}%</td><td>${S.prev.temperature_2m_min[i].toFixed(0)}–${S.prev.temperature_2m_max[i].toFixed(0)} °C</td><td>${S.prev.wind_speed_10m_max[i].toFixed(0)} km/h</td></tr>`).join('')}</table><div class="f">Fonte: ${FONTE.previsao}</div>` : ''}
       <h2>Resultado</h2><table><tr><th>Item</th><th>Resultado</th><th>Fonte / método</th></tr>
         <tr><td>Calcário (PRNT ${num('prnt')}%, ${$('#prof').value} cm)</td><td>${R.nc.toFixed(1)} t/ha · ${(R.nc * S.ha).toFixed(1)} t no talhão<br>V% ${R.s.V.toFixed(0)}% → ${R.v2}%</td><td class="f">${FONTE.calagem}</td></tr>
         <tr><td>Fósforo (P resina ${num('P')} mg/dm³)</td><td>Teor ${INTERP.classes[R.iP]} · produção relativa sem adubação ${PR[R.iP]}</td><td class="f">${FONTE.classes}</td></tr>
