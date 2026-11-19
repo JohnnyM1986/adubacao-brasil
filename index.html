@@ -56,13 +56,13 @@ footer a{color:var(--v)}
 
 <section class="passo" id="p-talhao" data-t="1 Talhão">
   <h2>1 · Seu talhão</h2>
-  <p class="nota">Toque no mapa para marcar os vértices do talhão, use o exemplo ou carregue um arquivo GeoJSON.</p>
+  <p class="nota">Toque no mapa para marcar os vértices do talhão, use o exemplo ou carregue um arquivo: <b>KML/KMZ</b> (Google Earth), <b>Shapefile</b> (.zip) ou <b>GeoJSON</b>.</p>
   <div id="mapa" class="mapa"></div>
   <div class="bar">
     <button class="b" id="bExemplo">Usar talhão de exemplo</button>
     <button class="b sec" id="bFechar">Fechar polígono</button>
     <button class="b sec" id="bLimpar">Limpar</button>
-    <label class="b sec">Carregar GeoJSON<input type="file" id="fGeo" accept=".json,.geojson"></label>
+    <label class="b sec">Carregar arquivo<input type="file" id="fGeo" accept=".kml,.kmz,.zip,.json,.geojson"></label>
   </div>
   <div class="nota" id="estado">Toque no mapa para começar</div>
   <div id="infoTalhao"></div>
@@ -144,7 +144,10 @@ footer a{color:var(--v)}
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/turf.min.js"></script>
 <script src="vendor/chart.umd.js"></script>
-<script src="motore.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/togeojson.umd.js"></script>
+<script src="vendor/shp.min.js"></script>
+<script src="motore.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

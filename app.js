@@ -51,9 +51,37 @@
   $('#bFechar').onclick = () => vert.length >= 3 ? definir(vert.map(v => [v[1], v[0]])) : toast('Marque pelo menos 3 pontos');
   $('#bLimpar').onclick = () => { vert = []; S.pol = null; S.clima = null; [linha, camada].forEach(l => l && mapa.removeLayer(l)); $('#infoTalhao').innerHTML = ''; $('#estado').textContent = 'Toque no mapa para começar'; };
   $('#bExemplo').onclick = () => definir([[-55.5230, -12.6170], [-55.5165, -12.6172], [-55.5163, -12.6235], [-55.5228, -12.6233]]);
+  // Leitura de arquivos: KML / KMZ (Google Earth), Shapefile .zip, GeoJSON
+  function primeiroPoligono(gj) {
+    const fs = gj.type === 'FeatureCollection' ? gj.features : [gj.type === 'Feature' ? gj : { geometry: gj }];
+    for (const f of fs) {
+      const g = f && f.geometry; if (!g) continue;
+      if (g.type === 'Polygon') return g.coordinates[0];
+      if (g.type === 'MultiPolygon') return g.coordinates[0][0];
+    }
+    return null;
+  }
+  async function lerArquivo(file) {
+    const nome = file.name.toLowerCase();
+    if (nome.endsWith('.kml')) return toGeoJSON.kml(new DOMParser().parseFromString(await file.text(), 'text/xml'));
+    if (nome.endsWith('.kmz')) {
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const kml = Object.keys(zip.files).find(n => n.toLowerCase().endsWith('.kml'));
+      if (!kml) throw new Error('KMZ sem KML');
+      return toGeoJSON.kml(new DOMParser().parseFromString(await zip.file(kml).async('string'), 'text/xml'));
+    }
+    if (nome.endsWith('.zip')) { const r = await shp(await file.arrayBuffer()); return Array.isArray(r) ? r[0] : r; }
+    return JSON.parse(await file.text());
+  }
   $('#fGeo').onchange = async e => {
-    try { const g = JSON.parse(await e.target.files[0].text()); const f = g.type === 'FeatureCollection' ? g.features[0] : g.type === 'Feature' ? g : { geometry: g };
-      definir(f.geometry.coordinates[0].slice(0, -1)); } catch { toast('Arquivo inválido: use um GeoJSON com polígono'); }
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const anel = primeiroPoligono(await lerArquivo(f));
+      if (!anel) throw new Error('sem polígono');
+      definir(anel.slice(0, -1).map(c => [c[0], c[1]]));
+      toast('Talhão carregado de ' + f.name + ' ✔');
+    } catch (err) { toast('Não encontrei um polígono no arquivo (use KML, KMZ, Shapefile .zip ou GeoJSON)'); }
+    e.target.value = '';
   };
   function definir(c) {
     S.pol = turf.polygon([[...c, c[0]]]); S.ha = turf.area(S.pol) / 1e4; S.cent = turf.centroid(S.pol).geometry.coordinates; S.clima = null;
@@ -62,7 +90,7 @@
     setTimeout(() => { mapa.invalidateSize(); mapa.fitBounds(camada.getBounds(), { maxZoom: 16 }); }, 60);
     $('#estado').textContent = 'Talhão definido';
     $('#infoTalhao').innerHTML = `<div class="ok">Área: <b>${S.ha.toFixed(1)} ha</b> · Centro: ${S.cent[1].toFixed(4)}, ${S.cent[0].toFixed(4)}</div>` +
-      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado; imagem de satélite © Esri, Maxar, Earthstar Geographics.</div>`;
+      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado ou carregado; imagem de satélite © Esri, Maxar, Earthstar Geographics.</div>`;
   }
 
   // ---------- cultura ----------
