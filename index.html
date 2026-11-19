@@ -108,7 +108,9 @@ footer a{color:var(--v)}
   <div class="grade">
     <div class="campo"><label>PRNT do calcário (%)</label><input id="prnt" type="number" value="80"></div>
     <div class="campo"><label>Profundidade de correção</label><select id="prof"><option value="20">0–20 cm</option><option value="40">0–40 cm (cana)</option></select></div>
+    <div class="campo"><label>V% desejado (V2)</label><input id="v2" type="number"></div>
   </div>
+  <p class="nota">V2 preenchido com o valor de referência da cultura: ajuste se o seu agrônomo ou a recomendação do seu estado indicar outro.</p>
   <div id="calcSolo" class="ok"></div>
   <div class="avancar"><button class="b" data-ir="3">Próximo →</button></div>
 </section>
@@ -120,8 +122,8 @@ footer a{color:var(--v)}
   <div class="avancar"><button class="b" data-ir="4">Ver recomendação →</button></div>
 </section>
 
-<section class="passo" id="p-res" data-t="5 Recomendação" hidden>
-  <h2>5 · Recomendação</h2>
+<section class="passo" id="p-res" data-t="5 Resultado" hidden>
+  <h2>5 · Resultado</h2>
   <div id="res"></div>
   <div class="pro-card" style="margin-top:14px"><h3>🛰️ Mapa de vigor real do seu talhão – versão Pro</h3>Zonas de manejo calculadas com imagens de satélite Sentinel-2 (Copernicus) de várias safras, para aplicar calcário e adubo em taxa variável. <a href="#" id="verPro">Conheça a versão Pro →</a></div>
   <h3>Relatório</h3>
@@ -145,7 +147,7 @@ footer a{color:var(--v)}
     <div class="pro-card"><h3>🚜 Taxa variável</h3>Mapas de prescrição de calcário e adubo para o monitor do trator (Shapefile e ISOBUS).</div>
     <div class="pro-card"><h3>📷 Leitura do laudo</h3>Fotografe ou envie o PDF da análise de solo: o assistente preenche tudo para você.</div>
     <div class="pro-card"><h3>🗂️ Vários talhões</h3>Histórico da fazenda, safras anteriores e relatórios em PDF.</div>
-    <div class="pro-card"><h3>🗺️ Todos os estados</h3>Recomendações oficiais de cada estado (MG, GO, MT, PR, RS/SC…), não só São Paulo.</div>
+    <div class="pro-card"><h3>🧪 Doses de N, P e K</h3>Doses de adubação pelas tabelas oficiais de cada estado (SP, MG, GO, MT, PR, RS/SC…), validadas por agrônomos.</div>
     <div class="pro-card"><h3>💰 Preços atualizados</h3>Custo real de calcário e fertilizantes e dose economicamente ótima.</div>
   </div>
   <div class="aviso" id="cta">Quer testar a versão Pro? <b>Em breve</b> abriremos uma lista de interessados.</div>
@@ -153,7 +155,7 @@ footer a{color:var(--v)}
 
 </main>
 <footer>
-  <p><b>Aviso:</b> ferramenta de apoio, em versão beta. As recomendações usam métodos de referência (calagem por saturação por bases; P e K por classes de teor e exportação da cultura) e devem ser confirmadas por um engenheiro agrônomo antes da aplicação.</p>
+  <p><b>Aviso:</b> ferramenta de apoio, em versão beta. A versão gratuita mostra apenas resultados de métodos oficiais: necessidade de calagem (saturação por bases) e interpretação dos teores de P e K (classes do Estado de São Paulo). Confirme sempre com um engenheiro agrônomo antes da aplicação.</p>
   <p><b>Fontes:</b> clima <a href="https://power.larc.nasa.gov/">NASA POWER</a>; classes de interpretação e método de calagem conforme as recomendações para o Estado de São Paulo (IAC, Boletim 100); imagens de satélite © Esri, Maxar, Earthstar Geographics; mapa © OpenStreetMap. Código e dados abertos no <a href="https://github.com/JohnnyM1986/adubacao-brasil">GitHub</a>.</p>
 </footer>
 <div id="relatorio"></div>
@@ -164,7 +166,7 @@ footer a{color:var(--v)}
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/togeojson.umd.js"></script>
 <script src="vendor/shp.min.js"></script>
-<script src="motore.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="motore.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

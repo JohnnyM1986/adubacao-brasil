@@ -9,7 +9,8 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 2. Cultura e produtividade esperada (sc/ha ou t/ha)
 3. Análise de solo (padrão SP) → SB, CTC, V%, m%
 4. Clima do local (NASA POWER, médias de longo prazo)
-5. Recomendação: calcário (saturação por bases), N, P₂O₅, K₂O — **cada resultado mostra a sua fonte**
+5. Resultado: necessidade de calcário (saturação por bases, V2 editável) e interpretação dos teores de P e K (classes oficiais SP) — **cada resultado mostra a sua fonte**
+   - Por escolha, a versão gratuita **não mostra doses de N, P₂O₅ e K₂O**: só resultados de métodos oficiais. As funções de dose em `motore.js` ficam reservadas para quando houver tabelas oficiais validadas.
 6. Relatório em PDF (impressão do navegador → Salvar como PDF)
 
 ## Fontes e métodos
@@ -17,11 +18,10 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 |---|---|
 | Calagem | Método da saturação por bases – Recomendações de Adubação e Calagem para o Estado de São Paulo (IAC, Boletim 100) |
 | Classes de P resina e K | Estado de São Paulo (IAC, Boletim 100) |
-| Doses de N, P₂O₅, K₂O | Método de balanço (exportação × produtividade × fator da classe); coeficientes de referência em `dados/culturas.json` |
 | Clima | NASA POWER – https://power.larc.nasa.gov |
 | Mapa | © OpenStreetMap |
 
-⚠️ Valores de referência para versão beta: **devem ser validados por engenheiro agrônomo** antes de uso real.
+⚠️ V2 por cultura (milho 70%, soja e cana 60%) é valor de referência editável pelo usuário. Resultados **devem ser confirmados por engenheiro agrônomo**.
 
 ## Estrutura
 - `index.html`, `app.js` – interface (pt-BR)
