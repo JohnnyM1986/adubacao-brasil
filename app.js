@@ -34,8 +34,12 @@
   const toast = t => { $('#toast').textContent = t; $('#toast').hidden = false; setTimeout(() => $('#toast').hidden = true, 2600); };
 
   // ---------- mapa ----------
-  const base = () => L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-  const mapa = L.map('mapa').setView([-21.2, -47.8], 7); base().addTo(mapa);
+  const sat = () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagens © Esri, Maxar, Earthstar Geographics' });
+  const osm = () => L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+  const base = () => sat();
+  const mapa = L.map('mapa').setView([-12.62, -55.52], 12);
+  const camSat = sat().addTo(mapa);
+  L.control.layers({ 'Satélite': camSat, 'Mapa': osm() }, null, { position: 'topright' }).addTo(mapa);
   let vert = [], linha = null, camada = null;
   mapa.on('click', e => {
     if (S.pol) return;
@@ -46,7 +50,7 @@
   });
   $('#bFechar').onclick = () => vert.length >= 3 ? definir(vert.map(v => [v[1], v[0]])) : toast('Marque pelo menos 3 pontos');
   $('#bLimpar').onclick = () => { vert = []; S.pol = null; S.clima = null; [linha, camada].forEach(l => l && mapa.removeLayer(l)); $('#infoTalhao').innerHTML = ''; $('#estado').textContent = 'Toque no mapa para começar'; };
-  $('#bExemplo').onclick = () => definir([[-47.8150, -21.1700], [-47.8065, -21.1705], [-47.8070, -21.1775], [-47.8155, -21.1770]]);
+  $('#bExemplo').onclick = () => definir([[-55.5230, -12.6170], [-55.5165, -12.6172], [-55.5163, -12.6235], [-55.5228, -12.6233]]);
   $('#fGeo').onchange = async e => {
     try { const g = JSON.parse(await e.target.files[0].text()); const f = g.type === 'FeatureCollection' ? g.features[0] : g.type === 'Feature' ? g : { geometry: g };
       definir(f.geometry.coordinates[0].slice(0, -1)); } catch { toast('Arquivo inválido: use um GeoJSON com polígono'); }
@@ -58,7 +62,7 @@
     setTimeout(() => { mapa.invalidateSize(); mapa.fitBounds(camada.getBounds(), { maxZoom: 16 }); }, 60);
     $('#estado').textContent = 'Talhão definido';
     $('#infoTalhao').innerHTML = `<div class="ok">Área: <b>${S.ha.toFixed(1)} ha</b> · Centro: ${S.cent[1].toFixed(4)}, ${S.cent[0].toFixed(4)}</div>` +
-      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado; mapa © OpenStreetMap.</div>`;
+      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado; imagem de satélite © Esri, Maxar, Earthstar Geographics.</div>`;
   }
 
   // ---------- cultura ----------
