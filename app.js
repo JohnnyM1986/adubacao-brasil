@@ -12,10 +12,13 @@
     balanco: 'Dose estimada por exportação da cultura × produtividade × fator da classe de teor (método de balanço; coeficientes de referência em dados/culturas.json).',
     soloCalc: 'SB = K + Ca + Mg; CTC = SB + (H+Al); V% = 100·SB/CTC (definições padrão da análise de solo).',
     clima: 'NASA POWER (Prediction Of Worldwide Energy Resources), comunidade Agroclimatologia, climatologia de longo prazo. https://power.larc.nasa.gov',
+    balanco_h: 'Evapotranspiração de referência FAO-56 Penman-Monteith (Allen et al., 1998) com dados NASA POWER; balanço hídrico climatológico de Thornthwaite & Mather (1955), CAD 100 mm.',
+    previsao: 'Weather data by Open-Meteo.com (CC BY 4.0), modelos meteorológicos nacionais. https://open-meteo.com',
+    altitude: 'Modelo digital de elevação de 90 m via Open-Meteo Elevation API (CC BY 4.0). Declividade estimada por plano ajustado aos pontos amostrados.',
   };
   const fonte = (k, extra) => `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> ${FONTE[k]}${extra ? ' ' + extra : ''}</div>`;
 
-  const S = { pol: null, ha: 0, cent: null, clima: null };
+  const S = { pol: null, ha: 0, cent: null, clima: null, alt: null, prev: null };
 
   // ---------- navegação ----------
   const passos = [...document.querySelectorAll('section.passo')];
@@ -84,13 +87,34 @@
     e.target.value = '';
   };
   function definir(c) {
-    S.pol = turf.polygon([[...c, c[0]]]); S.ha = turf.area(S.pol) / 1e4; S.cent = turf.centroid(S.pol).geometry.coordinates; S.clima = null;
+    S.pol = turf.polygon([[...c, c[0]]]); S.ha = turf.area(S.pol) / 1e4; S.cent = turf.centroid(S.pol).geometry.coordinates; S.clima = null; S.alt = null; S.prev = null;
     [linha, camada].forEach(l => l && mapa.removeLayer(l)); vert = [];
     camada = L.geoJSON(S.pol, { style: { color: '#0f3d22', weight: 3, fillOpacity: .15 } }).addTo(mapa);
     setTimeout(() => { mapa.invalidateSize(); mapa.fitBounds(camada.getBounds(), { maxZoom: 16 }); }, 60);
     $('#estado').textContent = 'Talhão definido';
     $('#infoTalhao').innerHTML = `<div class="ok">Área: <b>${S.ha.toFixed(1)} ha</b> · Centro: ${S.cent[1].toFixed(4)}, ${S.cent[0].toFixed(4)}</div>` +
-      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado ou carregado; imagem de satélite © Esri, Maxar, Earthstar Geographics.</div>`;
+      `<div style="font-size:12px;color:#5a665d;margin-top:4px">📚 <b>Fonte:</b> área geodésica calculada com Turf.js sobre o polígono desenhado ou carregado; imagem de satélite © Esri, Maxar, Earthstar Geographics.</div><div id="infoAlt" class="nota" style="margin-top:8px">⛰️ Calculando altitude…</div>`;
+    altitude();
+  }
+  async function altitude() {
+    try {
+      const bb = turf.bbox(S.pol), passo = Math.max((bb[2] - bb[0]), (bb[3] - bb[1])) / 6;
+      let pts = turf.pointGrid(bb, passo, { units: 'degrees', mask: S.pol }).features.map(f => f.geometry.coordinates);
+      pts = pts.concat(S.pol.geometry.coordinates[0].slice(0, -1), [S.cent]).slice(0, 100);
+      const u = `https://api.open-meteo.com/v1/elevation?latitude=${pts.map(p => p[1].toFixed(5)).join(',')}&longitude=${pts.map(p => p[0].toFixed(5)).join(',')}`;
+      const r = await fetch(u); if (!r.ok) throw new Error(r.status);
+      const z = (await r.json()).elevation;
+      // plano z = a·x + b·y + c (x, y em metros)
+      const lat0 = S.cent[1] * Math.PI / 180, X = pts.map(p => (p[0] - S.cent[0]) * 111320 * Math.cos(lat0)), Y = pts.map(p => (p[1] - S.cent[1]) * 110540);
+      const n = z.length, sx = X.reduce((a, b) => a + b, 0), sy = Y.reduce((a, b) => a + b, 0), sz = z.reduce((a, b) => a + b, 0);
+      let sxx = 0, syy = 0, sxy = 0, sxz = 0, syz = 0;
+      for (let i = 0; i < n; i++) { const x = X[i] - sx / n, y = Y[i] - sy / n, w = z[i] - sz / n; sxx += x * x; syy += y * y; sxy += x * y; sxz += x * w; syz += y * w; }
+      const det = sxx * syy - sxy * sxy, a = det ? (sxz * syy - syz * sxy) / det : 0, b = det ? (syz * sxx - sxz * sxy) / det : 0;
+      const decl = 100 * Math.sqrt(a * a + b * b), zmin = Math.min(...z), zmax = Math.max(...z);
+      S.alt = { media: sz / n, zmin, zmax, decl };
+      const pequeno = S.ha < 20 ? ' <small>(talhão pequeno para um modelo de 90 m: valores aproximados)</small>' : '';
+      $('#infoAlt').innerHTML = `⛰️ Altitude média <b>${(sz / n).toFixed(0)} m</b> (de ${zmin.toFixed(0)} a ${zmax.toFixed(0)} m) · Declividade média estimada <b>${decl.toFixed(1)}%</b>${pequeno}` + fonte('altitude');
+    } catch (e) { $('#infoAlt').textContent = '⛰️ Altitude não disponível agora.'; }
   }
 
   // ---------- cultura ----------
@@ -120,7 +144,7 @@
     if (!S.clima) {
       $('#infoClima').textContent = 'Buscando dados da NASA POWER…';
       try {
-        const u = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR,T2M&community=AG&longitude=${S.cent[0].toFixed(3)}&latitude=${S.cent[1].toFixed(3)}&format=JSON`;
+        const u = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,RH2M,WS2M,ALLSKY_SFC_SW_DWN&community=AG&longitude=${S.cent[0].toFixed(3)}&latitude=${S.cent[1].toFixed(3)}&format=JSON`;
         const r = await fetch(u); if (!r.ok) throw new Error(r.status);
         S.clima = await r.json();
       } catch (e) { $('#infoClima').innerHTML = '<div class="aviso">Não foi possível acessar a NASA POWER agora. Tente de novo mais tarde.</div>'; return; }
@@ -136,6 +160,38 @@
       { type: 'line', label: 'Temperatura (°C)', data: temp, borderColor: '#d9822b', pointRadius: 2, yAxisID: 'y2' }] },
       options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } },
         scales: { y: { title: { display: true, text: 'mm' } }, y2: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '°C' } } } } });
+    balanco(p, M, dias, chuva);
+    previsao();
+  }
+  let gBal = null;
+  function balanco(p, M, dias, chuva) {
+    try {
+      const etp = M.map((m, i) => AB.eto({ tmax: p.T2M_MAX[m], tmin: p.T2M_MIN[m], tmean: p.T2M[m], rh: p.RH2M[m], u2: p.WS2M[m], rs: p.ALLSKY_SFC_SW_DWN[m], lat: S.cent[1], z: S.alt ? S.alt.media : 0, mes: i + 1 }) * dias[i]);
+      const b = AB.balancoHidrico(chuva, etp, 100); S.bal = b;
+      const nomes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const defAno = b.reduce((a, m) => a + m.DEF, 0), excAno = b.reduce((a, m) => a + m.EXC, 0);
+      const secos = b.map((m, i) => m.DEF > 10 ? nomes[i] : null).filter(Boolean);
+      $('#infoBal').innerHTML = `ETo anual <b>${etp.reduce((a, x) => a + x, 0).toFixed(0)} mm</b> · Deficiência hídrica anual <b>${defAno.toFixed(0)} mm</b> · Excedente <b>${excAno.toFixed(0)} mm</b><br>Meses com deficiência (> 10 mm): <b>${secos.length ? secos.join(', ') : 'nenhum'}</b>` + fonte('balanco_h');
+      if (gBal) gBal.destroy();
+      gBal = new Chart($('#gBal'), { data: { labels: nomes, datasets: [
+        { type: 'line', label: 'Chuva (mm)', data: chuva, borderColor: '#5b9bd5', pointRadius: 2 },
+        { type: 'line', label: 'ETo (mm)', data: etp, borderColor: '#d9822b', pointRadius: 2 },
+        { type: 'bar', label: 'Deficiência (mm)', data: b.map(m => -m.DEF), backgroundColor: '#c0392b' },
+        { type: 'bar', label: 'Excedente (mm)', data: b.map(m => m.EXC), backgroundColor: '#7fb3d5' }] },
+        options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { title: { display: true, text: 'mm' } } } } });
+    } catch (e) { $('#infoBal').textContent = 'Balanço hídrico não disponível para este local.'; }
+  }
+  async function previsao() {
+    try {
+      if (!S.prev) {
+        const u = `https://api.open-meteo.com/v1/forecast?latitude=${S.cent[1].toFixed(4)}&longitude=${S.cent[0].toFixed(4)}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+        const r = await fetch(u); if (!r.ok) throw new Error(r.status); S.prev = (await r.json()).daily;
+      }
+      const d = S.prev, sem = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+      const linhas = d.time.map((t, i) => { const dt = new Date(t + 'T12:00'); const seco = d.precipitation_sum[i] < 1;
+        return `<tr class="${seco ? 'seco' : ''}"><td>${sem[dt.getDay()]} ${dt.getDate()}/${dt.getMonth() + 1}</td><td>${d.precipitation_sum[i].toFixed(1)} mm</td><td>${d.precipitation_probability_max[i] ?? '–'}%</td><td>${d.temperature_2m_min[i].toFixed(0)}–${d.temperature_2m_max[i].toFixed(0)} °C</td><td>${d.wind_speed_10m_max[i].toFixed(0)} km/h</td></tr>`; }).join('');
+      $('#previsao').innerHTML = `<table class="prev"><tr><th>Dia</th><th>Chuva</th><th>Prob.</th><th>Temp.</th><th>Vento máx.</th></tr>${linhas}</table><small>Dias em verde: sem chuva prevista (&lt; 1 mm).</small>` + fonte('previsao');
+    } catch (e) { $('#previsao').textContent = 'Previsão não disponível agora.'; }
   }
 
   // ---------- recomendação ----------
@@ -172,17 +228,18 @@
     const hoje = new Date().toLocaleDateString('pt-BR');
     let clima = '<tr><td colspan="2">Não consultado (abra o passo 4 – Clima antes de gerar o relatório).</td></tr>';
     if (S.clima) { const p = S.clima.properties.parameter, d = [31,28,31,30,31,30,31,31,30,31,30,31], M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-      clima = `<tr><td>Chuva média anual</td><td>${M.reduce((a, m, i) => a + p.PRECTOTCORR[m] * d[i], 0).toFixed(0)} mm</td></tr><tr><td>Temperatura média anual</td><td>${p.T2M.ANN.toFixed(1)} °C</td></tr>`; }
+      clima = (S.bal ? `<tr><td>Deficiência hídrica anual</td><td>${S.bal.reduce((a, m) => a + m.DEF, 0).toFixed(0)} mm</td></tr>` : '') + `<tr><td>Chuva média anual</td><td>${M.reduce((a, m, i) => a + p.PRECTOTCORR[m] * d[i], 0).toFixed(0)} mm</td></tr><tr><td>Temperatura média anual</td><td>${p.T2M.ANN.toFixed(1)} °C</td></tr>`; }
     $('#relatorio').innerHTML = `
       <div class="top"><div><h1>🌱 Relatório de calagem e fertilidade do solo</h1><div>Adubação Brasil · versão gratuita (beta) · ${hoje}</div></div>${svgTalhao()}</div>
       <h2>Talhão</h2><table><tr><td>Área</td><td>${S.ha.toFixed(1)} ha</td></tr><tr><td>Centro (lat, lon)</td><td>${S.cent[1].toFixed(5)}, ${S.cent[0].toFixed(5)}</td></tr></table>
-      <div class="f">Fonte: área geodésica calculada sobre o polígono (Turf.js).</div>
+      ${S.alt ? `<table><tr><td>Altitude média</td><td>${S.alt.media.toFixed(0)} m (${S.alt.zmin.toFixed(0)}–${S.alt.zmax.toFixed(0)} m)</td></tr><tr><td>Declividade média estimada</td><td>${S.alt.decl.toFixed(1)}%</td></tr></table>` : ''}
+      <div class="f">Fonte: área geodésica calculada sobre o polígono (Turf.js).${S.alt ? ' ' + FONTE.altitude : ''}</div>
       <h2>Cultura</h2><table><tr><td>Cultura</td><td>${R.c.nome}</td></tr><tr><td>Produtividade esperada</td><td>${num('prod')} ${R.c.unidade} (${AB.toneladas(R.c, num('prod')).toFixed(1)} t/ha)</td></tr>
 </table>
       <h2>Análise de solo (0–20 cm)</h2><table><tr><th>pH CaCl₂</th><th>M.O. g/dm³</th><th>P resina mg/dm³</th><th>K</th><th>Ca</th><th>Mg</th><th>H+Al</th><th>Al</th></tr>
         <tr><td>${num('ph')}</td><td>${num('mo')}</td><td>${num('P')}</td><td>${num('K')}</td><td>${num('Ca')}</td><td>${num('Mg')}</td><td>${num('HAl')}</td><td>${num('Al')}</td></tr></table>
       <div>SB ${R.s.SB.toFixed(1)} · CTC ${R.s.CTC.toFixed(1)} mmolc/dm³ · V% ${R.s.V.toFixed(0)}% · m% ${R.s.m.toFixed(0)}%</div><div class="f">Fonte: ${FONTE.soloCalc}</div>
-      <h2>Clima do local</h2><table>${clima}</table><div class="f">Fonte: ${FONTE.clima}</div>
+      <h2>Clima do local</h2><table>${clima}</table><div class="f">Fonte: ${FONTE.clima}${S.bal ? ' ' + FONTE.balanco_h : ''}</div>
       <h2>Resultado</h2><table><tr><th>Item</th><th>Resultado</th><th>Fonte / método</th></tr>
         <tr><td>Calcário (PRNT ${num('prnt')}%, ${$('#prof').value} cm)</td><td>${R.nc.toFixed(1)} t/ha · ${(R.nc * S.ha).toFixed(1)} t no talhão<br>V% ${R.s.V.toFixed(0)}% → ${R.v2}%</td><td class="f">${FONTE.calagem}</td></tr>
         <tr><td>Fósforo (P resina ${num('P')} mg/dm³)</td><td>Teor ${INTERP.classes[R.iP]} · produção relativa sem adubação ${PR[R.iP]}</td><td class="f">${FONTE.classes}</td></tr>

@@ -42,6 +42,7 @@ button.b.sec,label.b.sec{background:#fff;color:var(--v);border:1px solid var(--v
 footer{max-width:960px;margin:0 auto;padding:16px 12px 40px;font-size:13px;color:#5a665d}
 footer a{color:var(--v)}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 14px;border-radius:8px;z-index:2000}
+table.prev{border-collapse:collapse;width:100%;font-size:14px}table.prev td,table.prev th{border-bottom:1px solid #e3e7e4;padding:5px 4px;text-align:center}table.prev tr.seco td{background:#f3faf3}
 .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
 #relatorio{display:none}
 @media print{
@@ -119,7 +120,12 @@ footer a{color:var(--v)}
   <h2>4 · Clima do talhão</h2>
   <p class="nota" id="infoClima">Médias de longo prazo da NASA POWER para as coordenadas do talhão.</p>
   <div class="graf"><canvas id="gClima"></canvas></div>
-  <div class="avancar"><button class="b" data-ir="4">Ver recomendação →</button></div>
+  <h3>💧 Balanço hídrico climatológico</h3>
+  <div id="infoBal" class="nota"></div>
+  <div class="graf"><canvas id="gBal"></canvas></div>
+  <h3>🌦️ Previsão do tempo – próximos 7 dias</h3>
+  <div id="previsao" class="nota">Carregando…</div>
+  <div class="avancar"><button class="b" data-ir="4">Ver resultado →</button></div>
 </section>
 
 <section class="passo" id="p-res" data-t="5 Resultado" hidden>
@@ -156,7 +162,7 @@ footer a{color:var(--v)}
 </main>
 <footer>
   <p><b>Aviso:</b> ferramenta de apoio, em versão beta. A versão gratuita mostra apenas resultados de métodos oficiais: necessidade de calagem (saturação por bases) e interpretação dos teores de P e K (classes do Estado de São Paulo). Confirme sempre com um engenheiro agrônomo antes da aplicação.</p>
-  <p><b>Fontes:</b> clima <a href="https://power.larc.nasa.gov/">NASA POWER</a>; classes de interpretação e método de calagem conforme as recomendações para o Estado de São Paulo (IAC, Boletim 100); imagens de satélite © Esri, Maxar, Earthstar Geographics; mapa © OpenStreetMap. Código e dados abertos no <a href="https://github.com/JohnnyM1986/adubacao-brasil">GitHub</a>.</p>
+  <p><b>Fontes:</b> clima <a href="https://power.larc.nasa.gov/">NASA POWER</a>; previsão do tempo e altitude: <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a> (CC BY 4.0); classes de interpretação e método de calagem conforme as recomendações para o Estado de São Paulo (IAC, Boletim 100); imagens de satélite © Esri, Maxar, Earthstar Geographics; mapa © OpenStreetMap. Código e dados abertos no <a href="https://github.com/JohnnyM1986/adubacao-brasil">GitHub</a>.</p>
 </footer>
 <div id="relatorio"></div>
 <div id="toast" hidden></div>
@@ -166,7 +172,7 @@ footer a{color:var(--v)}
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/togeojson.umd.js"></script>
 <script src="vendor/shp.min.js"></script>
-<script src="motore.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="motore.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
