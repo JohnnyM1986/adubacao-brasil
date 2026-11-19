@@ -110,7 +110,6 @@
   }
 
   // ---------- recomendação ----------
-  let mapaVig = null, camVig = null;
   function recomendar() {
     if (!S.pol) { $('#res').innerHTML = '<div class="aviso">Defina primeiro o talhão (passo 1).</div>'; return; }
     const c = cultura(), k = $('#cultura').value, s = solo();
@@ -127,20 +126,7 @@
       </div>
       <div class="ok" style="margin-top:10px">Total para o talhão (${S.ha.toFixed(1)} ha): <b>${(nc * S.ha).toFixed(1)} t</b> de calcário · <b>${(n.dose * S.ha).toFixed(0)} kg</b> N · <b>${(pk.P2O5 * S.ha).toFixed(0)} kg</b> P₂O₅ · <b>${(pk.K2O * S.ha).toFixed(0)} kg</b> K₂O<br><small>💰 Custo, escolha dos adubos comerciais (ureia, MAP, KCl…) e dose economicamente ótima: <b>versão Pro</b>.</small></div>
       <div class="aviso">Recomendação média para todo o talhão, com base em métodos de referência. Confirme com um engenheiro agrônomo antes de aplicar.</div>`;
-    vigor();
   }
-  function vigor() {
-    if (!mapaVig) { mapaVig = L.map('mapaVig', { zoomControl: false }); base().addTo(mapaVig); }
-    if (camVig) mapaVig.removeLayer(camVig);
-    const bb = turf.bbox(S.pol), lado = Math.max(20, Math.sqrt(S.ha * 1e4 / 900));
-    const g = turf.squareGrid(bb, lado / 1000, { units: 'kilometers', mask: S.pol });
-    const vals = g.features.map(f => { const c = turf.centroid(f).geometry.coordinates; return f.properties.v = AB.vigorSimulado(c[0], c[1], 3); });
-    const o = [...vals].sort((a, b) => a - b), t1 = o[Math.floor(o.length / 3)], t2 = o[Math.floor(2 * o.length / 3)];
-    const cor = v => v < t1 ? '#d9a441' : v < t2 ? '#8fbf5a' : '#2e7d32';
-    camVig = L.geoJSON(g, { style: f => ({ stroke: false, fillColor: cor(f.properties.v), fillOpacity: .85 }) }).addTo(mapaVig);
-    setTimeout(() => { mapaVig.invalidateSize(); mapaVig.fitBounds(camVig.getBounds()); }, 80);
-  }
-
   // ---------- salvar / abrir ----------
   $('#bSalvar').onclick = () => {
     if (!S.pol) return toast('Defina primeiro o talhão');
@@ -160,5 +146,6 @@
     } catch { toast('Arquivo inválido'); }
   };
 
+  $('#verPro').onclick = e => { e.preventDefault(); ir(passos.findIndex(p => p.id === 'p-pro')); };
   ir(0);
 })();
