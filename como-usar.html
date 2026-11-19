@@ -7,18 +7,40 @@ header{background:linear-gradient(125deg,#0f3d22,#1f6b3a 55%,#3d8b2f);color:#fff
 header h1{margin:0;font-size:24px}main{max-width:720px;margin:0 auto;padding:14px}
 .p{background:#fff;border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:14px}
 .n{flex:0 0 42px;height:42px;border-radius:50%;background:#1f6b3a;color:#fff;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center}
-.p h2{margin:0 0 4px;font-size:18px;color:#1f6b3a}.p p{margin:0}
+.p h2{margin:0 0 4px;font-size:18px;color:#1f6b3a}.p p{margin:0}.p ul{margin:6px 0 0;padding-left:20px}
 .btn{display:block;text-align:center;background:#1f6b3a;color:#fff;text-decoration:none;font-weight:800;padding:15px;border-radius:12px;margin:16px 0}
 .aviso{background:#fff6dc;border-left:4px solid #f2b705;padding:10px 12px;border-radius:8px;font-size:15px}
+.pro{background:#fffdf4;border:2px solid #f2b705;border-radius:14px;padding:14px 16px;margin:14px 0}.pro h2{margin:0 0 6px;color:#6b4b00;font-size:18px}.pro ul{margin:0;padding-left:20px}
+small{color:#5a665d}
 </style></head><body>
-<header><h1>🌱 Adubação Brasil – como usar</h1><p style="margin:6px 0 0">Calagem e fertilidade do solo para milho, soja e cana em 5 passos. Grátis, no celular.</p></header>
+<header><h1>🌱 Adubação Brasil – como usar</h1><p style="margin:6px 0 0">Calagem, fertilidade do solo, clima e altitude do seu talhão para <b>milho, soja e cana-de-açúcar</b>. Grátis, no celular, sem cadastro.</p></header>
 <main>
 <a class="btn" href="./">Abrir a ferramenta</a>
-<div class="p"><div class="n">1</div><div><h2>Desenhe o talhão</h2><p>Toque no mapa nos cantos do talhão e depois em <b>Fechar polígono</b>. Ou carregue um arquivo do <b>Google Earth (KML ou KMZ)</b>, um <b>Shapefile</b> (.zip com .shp, .shx, .dbf e .prj) ou GeoJSON. A área em hectares, a <b>altitude</b> e a <b>declividade</b> são calculadas sozinhas.</p></div></div>
-<div class="p"><div class="n">2</div><div><h2>Escolha a cultura</h2><p>Milho, soja ou cana-de-açúcar e a produtividade esperada (sc/ha ou t/ha). No milho, indique se a safra anterior foi soja; na cana, se é cana-planta ou soca.</p></div></div>
-<div class="p"><div class="n">3</div><div><h2>Copie a análise de solo</h2><p>Use o laudo do laboratório (0–20 cm): pH, M.O., P resina, K, Ca, Mg, H+Al e Al. A ferramenta calcula SB, CTC e V%. Informe também o PRNT do seu calcário.</p></div></div>
-<div class="p"><div class="n">4</div><div><h2>Veja o clima</h2><p>Chuva e temperatura médias mensais (NASA POWER), <b>balanço hídrico</b> com os meses de deficiência de água e <b>previsão do tempo para 7 dias</b> (Open-Meteo).</p></div></div>
-<div class="p"><div class="n">5</div><div><h2>Veja o resultado</h2><p>Necessidade de calcário (t/ha e total do talhão) e interpretação dos teores de fósforo e potássio. Cada resultado mostra a <b>fonte</b> do método oficial usado. Gere um <b>relatório em PDF</b> e salve o talhão em arquivo para usar de novo na próxima safra.</p></div></div>
-<div class="aviso"><b>Importante:</b> é uma ferramenta de apoio, em versão beta, que mostra apenas resultados de métodos oficiais (Estado de São Paulo); as doses de N, P e K devem ser definidas pelo seu engenheiro agrônomo. Confirme sempre a recomendação com um engenheiro agrônomo. Seus dados não são enviados para nenhum servidor: ficam no seu aparelho.</div>
-<div class="p" style="display:block"><h2>⭐ Versão Pro</h2><p>Doses de N, P e K pelas tabelas oficiais de cada estado, mapas reais de satélite e dose variável, arquivo para o monitor do trator, leitura automática do laudo por foto ou PDF, vários talhões, todos os estados e preços atualizados.</p></div>
+
+<div class="p"><div class="n">1</div><div><h2>Talhão</h2><p>Toque no mapa (imagem de satélite) nos cantos do talhão e depois em <b>Fechar polígono</b>, ou toque em <b>Carregar arquivo</b>:</p>
+<ul><li><b>KML ou KMZ</b> do Google Earth</li><li><b>Shapefile</b> (.zip com .shp, .shx, .dbf e .prj)</li><li>GeoJSON</li></ul>
+<p>A ferramenta calcula <b>área (ha)</b>, <b>altitude</b> e <b>declividade média</b>.</p></div></div>
+
+<div class="p"><div class="n">2</div><div><h2>Cultura</h2><p>Escolha milho, soja ou cana-de-açúcar e a produtividade esperada.</p></div></div>
+
+<div class="p"><div class="n">3</div><div><h2>Análise de solo</h2><p>Copie os valores do laudo (0–20 cm): pH CaCl₂, M.O., P resina, K, Ca, Mg, H+Al e Al. A ferramenta calcula SB, CTC, V% e m%. Informe o <b>PRNT</b> do calcário. O <b>V% desejado</b> vem preenchido para a cultura e pode ser ajustado conforme seu agrônomo.</p></div></div>
+
+<div class="p"><div class="n">4</div><div><h2>Clima</h2><ul><li>Chuva e temperatura médias mensais</li><li><b>Balanço hídrico</b>: evapotranspiração e meses com falta de água</li><li><b>Previsão do tempo para 7 dias</b> (dias sem chuva em verde)</li></ul></div></div>
+
+<div class="p"><div class="n">5</div><div><h2>Resultado</h2><ul><li><b>Calcário</b> em t/ha e total do talhão</li><li>Interpretação dos teores de <b>fósforo e potássio</b> (muito baixo a muito alto)</li></ul>
+<p>Cada resultado mostra a <b>fonte</b> do método oficial usado.</p></div></div>
+
+<div class="p"><div class="n">6</div><div><h2>Relatório e arquivos</h2><ul><li><b>📄 Gerar relatório (PDF)</b>: escolha "Salvar como PDF" (no celular: Compartilhar → Imprimir → Salvar PDF)</li><li><b>Exportar KMZ/KML</b> para abrir no Google Earth</li><li><b>Salvar projeto (.json)</b> para reabrir na próxima safra</li></ul></div></div>
+
+<div class="aviso"><b>Importante:</b> ferramenta de apoio em versão beta. Mostra apenas resultados de métodos oficiais; as <b>doses de N, P e K</b> devem ser definidas pelo seu engenheiro agrônomo. Confirme sempre a recomendação antes de aplicar. Seus dados ficam no seu aparelho: nada é enviado para nós.</div>
+
+<div class="pro"><h2>⭐ Versão Pro</h2><ul>
+<li>📅 <b>Janela de plantio ZARC</b> do seu município, cultura e solo</li>
+<li>🧪 Doses de N, P e K pelas tabelas oficiais de cada estado</li>
+<li>🛰️ Mapa de vigor real com satélite Sentinel-2</li>
+<li>🚜 Taxa variável para o monitor do trator (Shapefile e ISOBUS)</li>
+<li>📷 Leitura do laudo de solo por foto ou PDF</li>
+<li>🗂️ Vários talhões e histórico · 💰 preços e escolha dos adubos</li></ul></div>
+
+<p><small>Fontes: NASA POWER; Open-Meteo.com (CC BY 4.0); FAO-56; Thornthwaite & Mather (1955); IAC – Boletim 100; imagens © Esri, Maxar, Earthstar Geographics; mapa © OpenStreetMap.</small></p>
 </main></body></html>

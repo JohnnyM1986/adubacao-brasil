@@ -33,4 +33,4 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 - `vendor/` – Leaflet (BSD-2), Turf.js (MIT), Chart.js (MIT), JSZip (MIT), toGeoJSON (BSD-2), shpjs (MIT)
 
 ## Próximos passos (versão Pro)
-Satélite Sentinel-2 real e zonas de manejo · taxa variável (Shapefile/ISOBUS) · leitura do laudo por foto/PDF · vários talhões · todos os estados · preços e escolha de adubos comerciais.
+Janela de plantio ZARC (MAPA) por município/cultura/solo · doses de N, P e K pelas tabelas oficiais · Satélite Sentinel-2 real e zonas de manejo · taxa variável (Shapefile/ISOBUS) · leitura do laudo por foto/PDF · vários talhões · todos os estados · preços e escolha de adubos comerciais.
