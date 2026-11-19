@@ -129,10 +129,12 @@ footer a{color:var(--v)}
   <p class="nota">Abre a janela de impressão: escolha <b>Salvar como PDF</b> (no celular: Compartilhar → Imprimir → Salvar PDF).</p>
   <h3>Guardar seu talhão</h3>
   <div class="bar">
-    <button class="b" id="bSalvar">Salvar meu talhão (.json)</button>
+    <button class="b" id="bKmz">Exportar KMZ (Google Earth)</button>
+    <button class="b sec" id="bKml">Exportar KML</button>
+    <button class="b sec" id="bSalvar">Salvar projeto (.json)</button>
     <label class="b sec">Abrir talhão salvo<input type="file" id="fTalhao" accept=".json"></label>
   </div>
-  <p class="nota">O arquivo fica só no seu celular ou computador: nenhum dado é enviado para nós.</p>
+  <p class="nota">KMZ/KML: abre no Google Earth com o talhão e a recomendação. JSON: guarda todos os dados para reabrir aqui na próxima safra. Os arquivos ficam só no seu aparelho: nenhum dado é enviado para nós.</p>
 </section>
 
 <section class="passo" id="p-pro" data-t="⭐ Versão Pro" hidden>
@@ -162,7 +164,7 @@ footer a{color:var(--v)}
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/togeojson.umd.js"></script>
 <script src="vendor/shp.min.js"></script>
-<script src="motore.js?v=5"></script>
-<script src="app.js?v=6"></script>
+<script src="motore.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

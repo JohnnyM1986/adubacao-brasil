@@ -192,6 +192,27 @@
     setTimeout(() => window.print(), 150);
   };
 
+
+  // ---------- exportar KML / KMZ ----------
+  function baixar(nome, blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); }
+  function textoKml() {
+    recomendar(); const R = S.res;
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const desc = R ? `${R.c.nome} – ${num('prod')} ${R.c.unidade}\nCalcário: ${R.nc.toFixed(1)} t/ha\nN: ${R.n.dose.toFixed(0)} kg/ha · P2O5: ${R.pk.P2O5.toFixed(0)} kg/ha · K2O: ${R.pk.K2O.toFixed(0)} kg/ha\nÁrea: ${S.ha.toFixed(1)} ha\nAdubação Brasil (beta) – confirmar com engenheiro agrônomo.` : '';
+    const coords = S.pol.geometry.coordinates[0].map(c => `${c[0].toFixed(7)},${c[1].toFixed(7)},0`).join(' ');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Talhão – Adubação Brasil</name>
+<Style id="t"><LineStyle><color>ff3a6b1f</color><width>3</width></LineStyle><PolyStyle><color>553a6b1f</color></PolyStyle></Style>
+<Placemark><name>Talhão (${S.ha.toFixed(1)} ha)</name><description>${esc(desc)}</description><styleUrl>#t</styleUrl>
+<Polygon><outerBoundaryIs><LinearRing><coordinates>${coords}</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark></Document></kml>`;
+  }
+  $('#bKml').onclick = () => { if (!S.pol) return toast('Defina primeiro o talhão'); baixar('talhao.kml', new Blob([textoKml()], { type: 'application/vnd.google-earth.kml+xml' })); };
+  $('#bKmz').onclick = async () => {
+    if (!S.pol) return toast('Defina primeiro o talhão');
+    const z = new JSZip(); z.file('doc.kml', textoKml());
+    baixar('talhao.kmz', await z.generateAsync({ type: 'blob', mimeType: 'application/vnd.google-earth.kmz' }));
+  };
+
   // ---------- salvar / abrir ----------
   $('#bSalvar').onclick = () => {
     if (!S.pol) return toast('Defina primeiro o talhão');
@@ -199,7 +220,7 @@
     const dados = { versao: '0.1', salvo_em: new Date().toISOString(), talhao: S.pol, sojaAnterior: $('#sojaAnt').checked };
     campos.forEach(c => dados[c] = $('#' + c).value);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }));
-    a.download = 'meu_talhao.json'; document.body.appendChild(a); a.click(); a.remove();
+    a.download = 'projeto_talhao.json'; document.body.appendChild(a); a.click(); a.remove();
   };
   $('#fTalhao').onchange = async e => {
     try {
