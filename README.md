@@ -7,7 +7,7 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 ## O que faz
 1. Desenho do talhão no mapa ou arquivo KML/KMZ (Google Earth), Shapefile .zip ou GeoJSON, com cálculo da área
 2. Cultura e produtividade esperada (sc/ha ou t/ha)
-3. Análise de solo (padrão SP) → SB, CTC, V%, m%
+3. Análise de solo: extrator (resina/Mehlich-1) e unidades (mmolc, cmolc, mg/dm³ para K) com conversão automática → SB, CTC, V%, m%. Interpretação de P e K só para resina (padrão SP)
 4. Clima do local (NASA POWER), ETo FAO-56 e balanço hídrico climatológico (Thornthwaite & Mather), previsão 7 dias (Open-Meteo)
    - Altitude e declividade do talhão (MDE 90 m via Open-Meteo Elevation API)
 5. Resultado: necessidade de calcário (saturação por bases, V2 editável) e interpretação dos teores de P e K (classes oficiais SP) — **cada resultado mostra a sua fonte**

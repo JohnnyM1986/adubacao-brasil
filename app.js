@@ -40,7 +40,7 @@
   const sat = () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagens © Esri, Maxar, Earthstar Geographics' });
   const osm = () => L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
   const base = () => sat();
-  const mapa = L.map('mapa').setView([-12.62, -55.52], 12);
+  const mapa = L.map('mapa').setView([-21.33, -48.10], 11);
   const camSat = sat().addTo(mapa);
   L.control.layers({ 'Satélite': camSat, 'Mapa': osm() }, null, { position: 'topright' }).addTo(mapa);
   let vert = [], linha = null, camada = null;
@@ -53,7 +53,7 @@
   });
   $('#bFechar').onclick = () => vert.length >= 3 ? definir(vert.map(v => [v[1], v[0]])) : toast('Marque pelo menos 3 pontos');
   $('#bLimpar').onclick = () => { vert = []; S.pol = null; S.clima = null; [linha, camada].forEach(l => l && mapa.removeLayer(l)); $('#infoTalhao').innerHTML = ''; $('#estado').textContent = 'Toque no mapa para começar'; };
-  $('#bExemplo').onclick = () => definir([[-55.5230, -12.6170], [-55.5165, -12.6172], [-55.5163, -12.6235], [-55.5228, -12.6233]]);
+  $('#bExemplo').onclick = () => definir([[-48.1030, -21.3270], [-48.0962, -21.3272], [-48.0960, -21.3335], [-48.1028, -21.3333]]);
   // Leitura de arquivos: KML / KMZ (Google Earth), Shapefile .zip, GeoJSON
   function primeiroPoligono(gj) {
     const fs = gj.type === 'FeatureCollection' ? gj.features : [gj.type === 'Feature' ? gj : { geometry: gj }];
@@ -130,10 +130,22 @@
 
   // ---------- solo ----------
   const num = id => +$('#' + id).value || 0;
-  function solo() { return AB.analise({ K: num('K'), Ca: num('Ca'), Mg: num('Mg'), HAl: num('HAl'), Al: num('Al') }); }
+  // conversão para mmolc/dm³
+  const fCat = () => $('#uCat').value === 'cmolc' ? 10 : 1;
+  const Kmmolc = () => { const u = $('#uK').value, v = num('K'); return u === 'cmolc' ? v * 10 : u === 'mg' ? v / 39.1 : v; };
+  const unK = () => ({ mmolc: 'mmolc/dm³', cmolc: 'cmolc/dm³', mg: 'mg/dm³' })[$('#uK').value];
+  const resina = () => $('#extr').value === 'resina';
+  function rotulos() {
+    $('#lP').textContent = (resina() ? 'P resina' : 'P Mehlich-1') + ' (mg/dm³)';
+    $('#lK').textContent = 'K (' + unK() + ')';
+    document.querySelectorAll('.lCat').forEach(l => l.textContent = l.dataset.n + ' (' + ($('#uCat').value === 'cmolc' ? 'cmolc/dm³' : 'mmolc/dm³') + ')');
+    atualizaSolo();
+  }
+  ['#extr', '#uCat', '#uK'].forEach(id => $(id).onchange = rotulos);
+  function solo() { const f = fCat(); return AB.analise({ K: Kmmolc(), Ca: num('Ca') * f, Mg: num('Mg') * f, HAl: num('HAl') * f, Al: num('Al') * f }); }
   function atualizaSolo() {
     const s = solo();
-    $('#calcSolo').innerHTML = `SB <b>${s.SB.toFixed(1)}</b> · CTC <b>${s.CTC.toFixed(1)}</b> mmolc/dm³ · V% <b>${s.V.toFixed(0)}%</b> · m% <b>${s.m.toFixed(0)}%</b>` + fonte('soloCalc');
+    $('#calcSolo').innerHTML = `SB <b>${s.SB.toFixed(1)}</b> · CTC <b>${s.CTC.toFixed(1)}</b> mmolc/dm³ (= ${(s.CTC / 10).toFixed(2)} cmolc/dm³) · V% <b>${s.V.toFixed(0)}%</b> · m% <b>${s.m.toFixed(0)}%</b>` + fonte('soloCalc', 'Conversões: 1 cmolc = 10 mmolc; K: 1 mmolc/dm³ = 39,1 mg/dm³.');
   }
   document.querySelectorAll('#p-solo input').forEach(i => i.oninput = atualizaSolo);
 
@@ -201,14 +213,15 @@
     if (!S.pol) { $('#res').innerHTML = '<div class="aviso">Defina primeiro o talhão (passo 1).</div>'; return; }
     const c = cultura(), k = $('#cultura').value, s = solo(), v2 = num('v2') || c.v2;
     const nc = AB.calagem(s.CTC, s.V, v2, num('prnt'), +$('#prof').value);
-    const iP = AB.classe(num('P'), INTERP.P_resina_mg_dm3[c.classes_p]), iK = AB.classe(num('K'), INTERP.K_mmolc_dm3);
-    S.res = { c, k, s, v2, nc, iP, iK };
+    const res = resina(), iP = res ? AB.classe(num('P'), INTERP.P_resina_mg_dm3[c.classes_p]) : null, iK = res ? AB.classe(Kmmolc(), INTERP.K_mmolc_dm3) : null;
+    S.res = { c, k, s, v2, nc, iP, iK, res };
     const nota = k === 'soja' ? '<div class="ok" style="margin-top:10px">🌱 <b>Soja:</b> o nitrogênio vem da fixação biológica (inoculação das sementes); adubação nitrogenada mineral normalmente não é recomendada.' + fonteTxt('Embrapa Soja – Tecnologias de produção de soja.') + '</div>' : '';
     $('#res').innerHTML = `
       <div class="cards">
         <div class="card cal"><div class="k">Calcário (PRNT ${num('prnt')}%, ${$('#prof').value} cm)</div><div class="v">${nc.toFixed(1)}</div><div class="u">t/ha · ${(nc * S.ha).toFixed(1)} t no talhão</div><small>V% de ${s.V.toFixed(0)}% para ${v2}%</small>${fonte('calagem')}</div>
-        <div class="card"><div class="k">Fósforo (P resina)</div><div class="v" style="font-size:24px">${INTERP.classes[iP]}</div><div class="u">${num('P')} mg/dm³</div><small>Produção relativa sem adubação: ${PR[iP]} · ${LEITURA[iP]}</small>${fonte('classes')}</div>
-        <div class="card"><div class="k">Potássio (K trocável)</div><div class="v" style="font-size:24px">${INTERP.classes[iK]}</div><div class="u">${num('K')} mmolc/dm³</div><small>Produção relativa sem adubação: ${PR[iK]} · ${LEITURA[iK]}</small>${fonte('classes')}</div>
+        ${res ? `<div class="card"><div class="k">Fósforo (P resina)</div><div class="v" style="font-size:24px">${INTERP.classes[iP]}</div><div class="u">${num('P')} mg/dm³</div><small>Produção relativa sem adubação: ${PR[iP]} · ${LEITURA[iP]}</small>${fonte('classes')}</div>
+        <div class="card"><div class="k">Potássio (K trocável)</div><div class="v" style="font-size:24px">${INTERP.classes[iK]}</div><div class="u">${Kmmolc().toFixed(2)} mmolc/dm³</div><small>Produção relativa sem adubação: ${PR[iK]} · ${LEITURA[iK]}</small>${fonte('classes')}</div>`
+        : `<div class="card"><div class="k">Fósforo e potássio (Mehlich-1)</div><div class="u" style="margin-top:6px">As classes de interpretação para Mehlich-1 dependem do estado e do teor de argila. Consulte seu engenheiro agrônomo ou a <b>versão Pro</b>.</div><small>A ferramenta gratuita interpreta apenas laudos com P e K extraídos por resina (padrão do Estado de São Paulo).</small></div>`}
       </div>${nota}
       <div class="aviso" style="margin-top:10px">As <b>doses de N, P₂O₅ e K₂O</b> dependem das tabelas oficiais de cada estado: consulte seu engenheiro agrônomo ou a <b>versão Pro</b>. Mostramos aqui apenas resultados de métodos oficiais.</div>`;
   }
@@ -236,7 +249,7 @@
       <div class="f">Fonte: área geodésica calculada sobre o polígono (Turf.js).${S.alt ? ' ' + FONTE.altitude : ''}</div>
       <h2>Cultura</h2><table><tr><td>Cultura</td><td>${R.c.nome}</td></tr><tr><td>Produtividade esperada</td><td>${num('prod')} ${R.c.unidade} (${AB.toneladas(R.c, num('prod')).toFixed(1)} t/ha)</td></tr>
 </table>
-      <h2>Análise de solo (0–20 cm)</h2><table><tr><th>pH CaCl₂</th><th>M.O. g/dm³</th><th>P resina mg/dm³</th><th>K</th><th>Ca</th><th>Mg</th><th>H+Al</th><th>Al</th></tr>
+      <h2>Análise de solo (0–20 cm)</h2><div class="f">Extrator de P e K: ${resina() ? 'resina' : 'Mehlich-1'} · K em ${unK()} · Ca, Mg, H+Al, Al em ${$('#uCat').value === 'cmolc' ? 'cmolc/dm³' : 'mmolc/dm³'}</div><table><tr><th>pH CaCl₂</th><th>M.O. g/dm³</th><th>P mg/dm³</th><th>K</th><th>Ca</th><th>Mg</th><th>H+Al</th><th>Al</th></tr>
         <tr><td>${num('ph')}</td><td>${num('mo')}</td><td>${num('P')}</td><td>${num('K')}</td><td>${num('Ca')}</td><td>${num('Mg')}</td><td>${num('HAl')}</td><td>${num('Al')}</td></tr></table>
       <div>SB ${R.s.SB.toFixed(1)} · CTC ${R.s.CTC.toFixed(1)} mmolc/dm³ · V% ${R.s.V.toFixed(0)}% · m% ${R.s.m.toFixed(0)}%</div><div class="f">Fonte: ${FONTE.soloCalc}</div>
       <h2>Clima do local</h2><table>${clima}</table>
@@ -245,8 +258,9 @@
       ${S.prev ? `<h2>Previsão do tempo (gerada em ${hoje})</h2><table><tr><th>Dia</th><th>Chuva</th><th>Prob.</th><th>Temp. mín–máx</th><th>Vento máx.</th></tr>${S.prev.time.map((t, i) => `<tr><td>${t.split('-').reverse().slice(0, 2).join('/')}</td><td>${S.prev.precipitation_sum[i].toFixed(1)} mm</td><td>${S.prev.precipitation_probability_max[i] ?? '–'}%</td><td>${S.prev.temperature_2m_min[i].toFixed(0)}–${S.prev.temperature_2m_max[i].toFixed(0)} °C</td><td>${S.prev.wind_speed_10m_max[i].toFixed(0)} km/h</td></tr>`).join('')}</table><div class="f">Fonte: ${FONTE.previsao}</div>` : ''}
       <h2>Resultado</h2><table><tr><th>Item</th><th>Resultado</th><th>Fonte / método</th></tr>
         <tr><td>Calcário (PRNT ${num('prnt')}%, ${$('#prof').value} cm)</td><td>${R.nc.toFixed(1)} t/ha · ${(R.nc * S.ha).toFixed(1)} t no talhão<br>V% ${R.s.V.toFixed(0)}% → ${R.v2}%</td><td class="f">${FONTE.calagem}</td></tr>
-        <tr><td>Fósforo (P resina ${num('P')} mg/dm³)</td><td>Teor ${INTERP.classes[R.iP]} · produção relativa sem adubação ${PR[R.iP]}</td><td class="f">${FONTE.classes}</td></tr>
-        <tr><td>Potássio (K ${num('K')} mmolc/dm³)</td><td>Teor ${INTERP.classes[R.iK]} · produção relativa sem adubação ${PR[R.iK]}</td><td class="f">${FONTE.classes}</td></tr>
+        ${R.res ? `<tr><td>Fósforo (P resina ${num('P')} mg/dm³)</td><td>Teor ${INTERP.classes[R.iP]} · produção relativa sem adubação ${PR[R.iP]}</td><td class="f">${FONTE.classes}</td></tr>
+        <tr><td>Potássio (K ${Kmmolc().toFixed(2)} mmolc/dm³)</td><td>Teor ${INTERP.classes[R.iK]} · produção relativa sem adubação ${PR[R.iK]}</td><td class="f">${FONTE.classes}</td></tr>`
+        : `<tr><td>Fósforo e potássio (Mehlich-1)</td><td>Interpretação não incluída na versão gratuita</td><td class="f">Classes para Mehlich-1 dependem do estado e do teor de argila: consultar o engenheiro agrônomo.</td></tr>`}
         ${R.k === 'soja' ? '<tr><td>Nitrogênio</td><td>Fixação biológica (inoculação); N mineral normalmente não recomendado</td><td class="f">Embrapa Soja – Tecnologias de produção de soja.</td></tr>' : ''}</table>
       <div class="f">Doses de N, P₂O₅ e K₂O: conforme tabela oficial do estado, definidas pelo engenheiro agrônomo.</div>
       <div class="avisoR"><b>Aviso:</b> resultados médios para todo o talhão, obtidos com métodos oficiais por ferramenta de apoio em versão beta. Devem ser confirmados por um engenheiro agrônomo antes da aplicação.</div>
@@ -260,7 +274,7 @@
   function textoKml() {
     recomendar(); const R = S.res;
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    const desc = R ? `${R.c.nome}\nCalcário: ${R.nc.toFixed(1)} t/ha (V% ${R.s.V.toFixed(0)} → ${R.v2})\nP resina: ${INTERP.classes[R.iP]} · K: ${INTERP.classes[R.iK]}\nÁrea: ${S.ha.toFixed(1)} ha\nAdubação Brasil (beta) – confirmar com engenheiro agrônomo.` : '';
+    const desc = R ? `${R.c.nome}\nCalcário: ${R.nc.toFixed(1)} t/ha (V% ${R.s.V.toFixed(0)} → ${R.v2})${R.res ? `\nP resina: ${INTERP.classes[R.iP]} · K: ${INTERP.classes[R.iK]}` : ''}\nÁrea: ${S.ha.toFixed(1)} ha\nAdubação Brasil (beta) – confirmar com engenheiro agrônomo.` : '';
     const coords = S.pol.geometry.coordinates[0].map(c => `${c[0].toFixed(7)},${c[1].toFixed(7)},0`).join(' ');
     return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Talhão – Adubação Brasil</name>
@@ -278,7 +292,7 @@
   // ---------- salvar / abrir ----------
   $('#bSalvar').onclick = () => {
     if (!S.pol) return toast('Defina primeiro o talhão');
-    const campos = ['cultura', 'prod', 'v2', 'ph', 'mo', 'P', 'K', 'Ca', 'Mg', 'HAl', 'Al', 'prnt', 'prof'];
+    const campos = ['cultura', 'prod', 'v2', 'extr', 'uCat', 'uK', 'ph', 'mo', 'P', 'K', 'Ca', 'Mg', 'HAl', 'Al', 'prnt', 'prof'];
     const dados = { versao: '0.1', salvo_em: new Date().toISOString(), talhao: S.pol, sojaAnterior: $('#sojaAnt').checked };
     campos.forEach(c => dados[c] = $('#' + c).value);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }));
@@ -289,7 +303,7 @@
       const d = JSON.parse(await e.target.files[0].text());
       $('#cultura').value = d.cultura; atualizaCultura();
       Object.keys(d).forEach(k => { const el = document.getElementById(k); if (el && typeof d[k] === 'string') el.value = d[k]; });
-      $('#sojaAnt').checked = !!d.sojaAnterior;
+      $('#sojaAnt').checked = !!d.sojaAnterior; rotulos();
       definir(d.talhao.geometry.coordinates[0].slice(0, -1)); recomendar(); toast('Talhão aberto ✔');
     } catch { toast('Arquivo inválido'); }
   };

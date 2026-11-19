@@ -94,16 +94,21 @@ table.prev{border-collapse:collapse;width:100%;font-size:14px}table.prev td,tabl
 
 <section class="passo" id="p-solo" data-t="3 Análise de solo" hidden>
   <h2>3 · Análise de solo (0–20 cm)</h2>
-  <p class="nota">Copie os valores do laudo do laboratório (padrão São Paulo: P resina em mg/dm³; K, Ca, Mg, H+Al e Al em mmol<sub>c</sub>/dm³). Já vem preenchido com um exemplo.</p>
+  <p class="nota">Copie os valores do laudo do laboratório. Escolha antes o <b>extrator</b> e as <b>unidades</b> que aparecem no laudo: a ferramenta converte tudo para mmol<sub>c</sub>/dm³. Já vem preenchido com um exemplo (padrão São Paulo).</p>
   <div class="grade">
+    <div class="campo"><label>Extrator de P e K (veja no laudo)</label><select id="extr"><option value="resina">Resina (padrão SP)</option><option value="mehlich">Mehlich-1</option></select></div>
+    <div class="campo"><label>Unidade de Ca, Mg, H+Al, Al</label><select id="uCat"><option value="mmolc">mmolc/dm³</option><option value="cmolc">cmolc/dm³</option></select></div>
+    <div class="campo"><label>Unidade de K</label><select id="uK"><option value="mmolc">mmolc/dm³</option><option value="cmolc">cmolc/dm³</option><option value="mg">mg/dm³</option></select></div>
+  </div>
+  <div class="grade" style="margin-top:10px">
     <div class="campo"><label>pH (CaCl₂)</label><input id="ph" type="number" step="0.1" value="4.8"></div>
     <div class="campo"><label>M.O. (g/dm³)</label><input id="mo" type="number" value="22"></div>
-    <div class="campo"><label>P resina (mg/dm³)</label><input id="P" type="number" value="12"></div>
-    <div class="campo"><label>K (mmolc/dm³)</label><input id="K" type="number" step="0.1" value="1.4"></div>
-    <div class="campo"><label>Ca (mmolc/dm³)</label><input id="Ca" type="number" value="18"></div>
-    <div class="campo"><label>Mg (mmolc/dm³)</label><input id="Mg" type="number" value="6"></div>
-    <div class="campo"><label>H+Al (mmolc/dm³)</label><input id="HAl" type="number" value="38"></div>
-    <div class="campo"><label>Al (mmolc/dm³)</label><input id="Al" type="number" value="3"></div>
+    <div class="campo"><label id="lP">P resina (mg/dm³)</label><input id="P" type="number" value="12"></div>
+    <div class="campo"><label id="lK">K (mmolc/dm³)</label><input id="K" type="number" step="0.1" value="1.4"></div>
+    <div class="campo"><label class="lCat" data-n="Ca">Ca (mmolc/dm³)</label><input id="Ca" type="number" value="18"></div>
+    <div class="campo"><label class="lCat" data-n="Mg">Mg (mmolc/dm³)</label><input id="Mg" type="number" value="6"></div>
+    <div class="campo"><label class="lCat" data-n="H+Al">H+Al (mmolc/dm³)</label><input id="HAl" type="number" value="38"></div>
+    <div class="campo"><label class="lCat" data-n="Al">Al (mmolc/dm³)</label><input id="Al" type="number" value="3"></div>
   </div>
   <h3>Calcário disponível</h3>
   <div class="grade">
@@ -174,6 +179,6 @@ table.prev{border-collapse:collapse;width:100%;font-size:14px}table.prev td,tabl
 <script src="vendor/togeojson.umd.js"></script>
 <script src="vendor/shp.min.js"></script>
 <script src="motore.js?v=9"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
