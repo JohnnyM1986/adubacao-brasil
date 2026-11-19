@@ -36,4 +36,4 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 Janela de plantio ZARC (MAPA) por município/cultura/solo · doses de N, P e K pelas tabelas oficiais · Satélite Sentinel-2 real e zonas de manejo · taxa variável (Shapefile/ISOBUS) · leitura do laudo por foto/PDF · vários talhões · todos os estados · preços e escolha de adubos comerciais.
 
 ## Contato para a versão Pro
-Giacomo – +39 329 806 5777 (WhatsApp)
+Giacomo (A&G) – +593 98 264 3523 (WhatsApp)

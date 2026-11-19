@@ -264,7 +264,7 @@
         ${R.k === 'soja' ? '<tr><td>Nitrogênio</td><td>Fixação biológica (inoculação); N mineral normalmente não recomendado</td><td class="f">Embrapa Soja – Tecnologias de produção de soja.</td></tr>' : ''}</table>
       <div class="f">Doses de N, P₂O₅ e K₂O: conforme tabela oficial do estado, definidas pelo engenheiro agrônomo.</div>
       <div class="avisoR"><b>Aviso:</b> resultados médios para todo o talhão, obtidos com métodos oficiais por ferramenta de apoio em versão beta. Devem ser confirmados por um engenheiro agrônomo antes da aplicação.</div>
-      <div class="f" style="margin-top:8px">Gerado em johnnym1986.github.io/adubacao-brasil · Versão Pro (ZARC, doses NPK oficiais, satélite, taxa variável): fale com Giacomo, +39 329 806 5777 (WhatsApp).</div>`;
+      <div class="f" style="margin-top:8px">Gerado em johnnym1986.github.io/adubacao-brasil · Versão Pro (ZARC, doses NPK oficiais, satélite, taxa variável): fale com Giacomo (A&G), +593 98 264 3523 (WhatsApp).</div>`;
     setTimeout(() => window.print(), 150);
   };
 
