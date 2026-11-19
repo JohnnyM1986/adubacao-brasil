@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adubação Brasil – calagem e adubação grátis para milho, soja e cana</title>
+<meta name="description" content="Ferramenta gratuita de recomendação de calagem e adubação para milho, soja e cana-de-açúcar. Funciona no celular.">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+:root{--v:#1f6b3a;--v2:#e7f2ea;--a:#f2b705;--t:#1b2a20;--g:#f5f7f2}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--g);color:var(--t);font-size:16px}
+header{background:linear-gradient(125deg,#0f3d22,#1f6b3a 55%,#3d8b2f);color:#fff;padding:18px 18px 22px}
+header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.92;font-size:15px}
+.selo{display:inline-block;background:var(--a);color:#3a2a00;font-weight:800;font-size:12px;border-radius:12px;padding:3px 10px;margin-bottom:8px}
+#nav{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;background:#fff;border-bottom:1px solid #dde3dc;position:sticky;top:0;z-index:1000}
+#nav button{flex:0 0 auto;border:1px solid #cdd8cf;background:#fff;border-radius:18px;padding:7px 12px;font-size:14px;color:var(--t)}
+#nav button.on{background:var(--v);color:#fff;border-color:var(--v)}
+#nav button.pro{border-color:var(--a);background:#fff8e1}
+#nav button.pro.on{background:var(--a);color:#3a2a00}
+main{max-width:960px;margin:0 auto;padding:12px}
+section.passo{background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+h2{color:var(--v);font-size:20px;margin:0 0 4px}h3{font-size:16px;margin:16px 0 6px}
+.nota{font-size:14px;color:#5a665d;margin:0 0 10px}
+.mapa{height:340px;border-radius:12px;border:1px solid #cfd6d0;background:#dfe9e1}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+button.b,label.b{background:var(--v);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-size:15px;cursor:pointer}
+button.b.sec,label.b.sec{background:#fff;color:var(--v);border:1px solid var(--v)}label.b input{display:none}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.campo label{display:block;font-size:13px;color:#5a665d;margin-bottom:3px}
+.campo input,.campo select{width:100%;padding:9px;border:1px solid #cdd5cf;border-radius:8px;font-size:16px;background:#fff}
+.ok{background:var(--v2);border-left:4px solid var(--v);padding:9px 11px;border-radius:8px;margin-top:8px}
+.aviso{background:#fff6dc;border-left:4px solid var(--a);padding:9px 11px;border-radius:8px;margin-top:8px;font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.card{background:var(--v2);border-radius:12px;padding:12px}.card .k{font-size:13px;color:#4a5a4e}.card .v{font-size:30px;font-weight:800;color:var(--v)}.card .u{font-size:13px}.card small{color:#5a665d}
+.card.cal{background:#fff3cf}.card.cal .v{color:#8a5a00}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#eef2ee;border-radius:10px;padding:6px 10px;font-size:14px}
+.graf{position:relative;height:240px}
+.pro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pro-card{border:2px solid var(--a);border-radius:14px;padding:14px;background:#fffdf4}
+.pro-card h3{margin:0 0 6px;color:#6b4b00}
+.avancar{margin-top:14px;text-align:right}
+footer{max-width:960px;margin:0 auto;padding:16px 12px 40px;font-size:13px;color:#5a665d}
+footer a{color:var(--v)}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 14px;border-radius:8px;z-index:2000}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<header>
+  <span class="selo">GRÁTIS · BETA</span>
+  <h1>🌱 Adubação Brasil</h1>
+  <p>Calagem e adubação para <b>milho, soja e cana-de-açúcar</b>, direto do celular. Desenhe o talhão, informe a análise de solo e receba a recomendação.</p>
+</header>
+<nav id="nav"></nav>
+<main>
+
+<section class="passo" id="p-talhao" data-t="1 Talhão">
+  <h2>1 · Seu talhão</h2>
+  <p class="nota">Toque no mapa para marcar os vértices do talhão, use o exemplo ou carregue um arquivo GeoJSON.</p>
+  <div id="mapa" class="mapa"></div>
+  <div class="bar">
+    <button class="b" id="bExemplo">Usar talhão de exemplo</button>
+    <button class="b sec" id="bFechar">Fechar polígono</button>
+    <button class="b sec" id="bLimpar">Limpar</button>
+    <label class="b sec">Carregar GeoJSON<input type="file" id="fGeo" accept=".json,.geojson"></label>
+  </div>
+  <div class="nota" id="estado">Toque no mapa para começar</div>
+  <div id="infoTalhao"></div>
+  <div class="avancar"><button class="b" data-ir="1">Próximo →</button></div>
+</section>
+
+<section class="passo" id="p-cultura" data-t="2 Cultura" hidden>
+  <h2>2 · Cultura</h2>
+  <div class="grade">
+    <div class="campo"><label>Cultura</label><select id="cultura"><option value="milho">Milho (grão)</option><option value="soja">Soja</option><option value="cana">Cana-de-açúcar</option></select></div>
+    <div class="campo"><label>Produtividade esperada (<span id="un">sc/ha</span>)</label><input id="prod" type="number"></div>
+    <div class="campo" id="cSoja"><label><input type="checkbox" id="sojaAnt" checked> Soja na safra anterior</label></div>
+    <div class="campo" id="cCana" hidden><label>Ciclo</label><select id="ciclo"><option value="planta">Cana-planta</option><option value="soca" selected>Cana-soca</option></select></div>
+  </div>
+  <div class="avancar"><button class="b" data-ir="2">Próximo →</button></div>
+</section>
+
+<section class="passo" id="p-solo" data-t="3 Análise de solo" hidden>
+  <h2>3 · Análise de solo (0–20 cm)</h2>
+  <p class="nota">Copie os valores do laudo do laboratório (padrão São Paulo: P resina em mg/dm³; K, Ca, Mg, H+Al e Al em mmol<sub>c</sub>/dm³). Já vem preenchido com um exemplo.</p>
+  <div class="grade">
+    <div class="campo"><label>pH (CaCl₂)</label><input id="ph" type="number" step="0.1" value="4.8"></div>
+    <div class="campo"><label>M.O. (g/dm³)</label><input id="mo" type="number" value="22"></div>
+    <div class="campo"><label>P resina (mg/dm³)</label><input id="P" type="number" value="12"></div>
+    <div class="campo"><label>K (mmolc/dm³)</label><input id="K" type="number" step="0.1" value="1.4"></div>
+    <div class="campo"><label>Ca (mmolc/dm³)</label><input id="Ca" type="number" value="18"></div>
+    <div class="campo"><label>Mg (mmolc/dm³)</label><input id="Mg" type="number" value="6"></div>
+    <div class="campo"><label>H+Al (mmolc/dm³)</label><input id="HAl" type="number" value="38"></div>
+    <div class="campo"><label>Al (mmolc/dm³)</label><input id="Al" type="number" value="3"></div>
+  </div>
+  <h3>Calcário disponível</h3>
+  <div class="grade">
+    <div class="campo"><label>PRNT do calcário (%)</label><input id="prnt" type="number" value="80"></div>
+    <div class="campo"><label>Profundidade de correção</label><select id="prof"><option value="20">0–20 cm</option><option value="40">0–40 cm (cana)</option></select></div>
+  </div>
+  <div id="calcSolo" class="ok"></div>
+  <div class="avancar"><button class="b" data-ir="3">Próximo →</button></div>
+</section>
+
+<section class="passo" id="p-clima" data-t="4 Clima" hidden>
+  <h2>4 · Clima do talhão</h2>
+  <p class="nota" id="infoClima">Médias de longo prazo da NASA POWER para as coordenadas do talhão.</p>
+  <div class="graf"><canvas id="gClima"></canvas></div>
+  <div class="avancar"><button class="b" data-ir="4">Ver recomendação →</button></div>
+</section>
+
+<section class="passo" id="p-res" data-t="5 Recomendação" hidden>
+  <h2>5 · Recomendação</h2>
+  <div id="res"></div>
+  <h3>Prévia: zonas de vigor do talhão</h3>
+  <div id="mapaVig" class="mapa" style="height:260px"></div>
+  <p class="nota">⚠️ Mapa <b>simulado</b> para mostrar a função. Na <b>versão Pro</b>: imagens reais Sentinel-2 e dose variável por zona.</p>
+  <h3>Guardar seu talhão</h3>
+  <div class="bar">
+    <button class="b" id="bSalvar">Salvar meu talhão (.json)</button>
+    <label class="b sec">Abrir talhão salvo<input type="file" id="fTalhao" accept=".json"></label>
+  </div>
+  <p class="nota">O arquivo fica só no seu celular ou computador: nenhum dado é enviado para nós.</p>
+</section>
+
+<section class="passo" id="p-pro" data-t="⭐ Versão Pro" hidden>
+  <h2>⭐ Versão Pro</h2>
+  <p class="nota">A versão gratuita dá a recomendação média do talhão. A versão Pro leva a precisão para dentro do talhão e economiza seu tempo.</p>
+  <div class="pro-grid">
+    <div class="pro-card"><h3>🛰️ Mapas reais de satélite</h3>Zonas de manejo com imagens Sentinel-2 de várias safras.</div>
+    <div class="pro-card"><h3>🚜 Taxa variável</h3>Mapas de prescrição de calcário e adubo para o monitor do trator (Shapefile e ISOBUS).</div>
+    <div class="pro-card"><h3>📷 Leitura do laudo</h3>Fotografe ou envie o PDF da análise de solo: o assistente preenche tudo para você.</div>
+    <div class="pro-card"><h3>🗂️ Vários talhões</h3>Histórico da fazenda, safras anteriores e relatórios em PDF.</div>
+    <div class="pro-card"><h3>🗺️ Todos os estados</h3>Recomendações oficiais de cada estado (MG, GO, MT, PR, RS/SC…), não só São Paulo.</div>
+    <div class="pro-card"><h3>💰 Preços atualizados</h3>Custo real de calcário e fertilizantes e dose economicamente ótima.</div>
+  </div>
+  <div class="aviso" id="cta">Quer testar a versão Pro? <b>Em breve</b> abriremos uma lista de interessados.</div>
+</section>
+
+</main>
+<footer>
+  <p><b>Aviso:</b> ferramenta de apoio, em versão beta. As recomendações usam métodos de referência (calagem por saturação por bases; P e K por classes de teor e exportação da cultura) e devem ser confirmadas por um engenheiro agrônomo antes da aplicação.</p>
+  <p><b>Fontes:</b> clima <a href="https://power.larc.nasa.gov/">NASA POWER</a>; classes de interpretação e método de calagem conforme as recomendações para o Estado de São Paulo (IAC, Boletim 100); mapas © OpenStreetMap. Código e dados abertos no <a href="https://github.com/JohnnyM1986/adubacao-brasil">GitHub</a>.</p>
+</footer>
+<div id="toast" hidden></div>
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/turf.min.js"></script>
+<script src="vendor/chart.umd.js"></script>
+<script src="motore.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

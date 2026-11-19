@@ -1,0 +1,7 @@
+{
+  "_fonte": "Classes de interpretação usadas no Estado de São Paulo (P resina, K trocável) – conferir com Boletim 100 IAC (2022).",
+  "classes": ["muito baixo", "baixo", "médio", "alto", "muito alto"],
+  "fator_dose": [1.5, 1.25, 1.0, 0.5, 0.0],
+  "P_resina_mg_dm3": {"anuais": [6, 15, 40, 80], "perenes": [5, 12, 30, 60]},
+  "K_mmolc_dm3": [0.7, 1.5, 3.0, 6.0]
+}

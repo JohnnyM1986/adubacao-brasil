@@ -1,0 +1,21 @@
+{
+  "_aviso": "Valores de REFERÊNCIA para demonstração. Devem ser conferidos por engenheiro agrônomo e com a publicação oficial (ex.: Boletim 100 IAC, 2022) antes de uso real.",
+  "milho": {
+    "nome": "Milho (grão)", "unidade": "sc/ha", "kg_por_unidade": 60, "produtividade_padrao": 160,
+    "v2": 70, "classes_p": "anuais",
+    "exportacao_kg_t": {"N": 15, "P2O5": 8, "K2O": 6},
+    "n_regra": {"kg_N_por_t": 20, "credito_soja_anterior": 30, "min": 30, "max": 200}
+  },
+  "soja": {
+    "nome": "Soja (grão)", "unidade": "sc/ha", "kg_por_unidade": 60, "produtividade_padrao": 65,
+    "v2": 60, "classes_p": "anuais",
+    "exportacao_kg_t": {"N": 0, "P2O5": 14, "K2O": 20},
+    "n_regra": {"fixacao_biologica": true}
+  },
+  "cana": {
+    "nome": "Cana-de-açúcar", "unidade": "t/ha", "kg_por_unidade": 1000, "produtividade_padrao": 85,
+    "v2": 60, "classes_p": "perenes",
+    "exportacao_kg_t": {"N": 1.0, "P2O5": 0.4, "K2O": 1.3},
+    "n_regra": {"cana_planta_kg_ha": 40, "soca_kg_N_por_t": 1.0, "min": 30, "max": 150}
+  }
+}
