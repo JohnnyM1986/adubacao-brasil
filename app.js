@@ -145,6 +145,7 @@
     const nc = AB.calagem(s.CTC, s.V, c.v2, num('prnt'), +$('#prof').value);
     const n = AB.nitrogenio(c, tha, { sojaAnterior: $('#sojaAnt').checked, canaPlanta: $('#ciclo').value === 'planta' });
     const pk = AB.fosforoPotassio(c, tha, INTERP, num('P'), num('K'));
+    S.res = { c, k, s, tha, nc, n, pk };
     $('#res').innerHTML = `
       <div class="cards">
         <div class="card cal"><div class="k">Calcário (PRNT ${num('prnt')}%)</div><div class="v">${nc.toFixed(1)}</div><div class="u">t/ha · ${(nc * S.ha).toFixed(0)} t no talhão</div><small>V% de ${s.V.toFixed(0)}% para ${c.v2}%</small>${fonte('calagem')}</div>
@@ -155,6 +156,42 @@
       <div class="ok" style="margin-top:10px">Total para o talhão (${S.ha.toFixed(1)} ha): <b>${(nc * S.ha).toFixed(1)} t</b> de calcário · <b>${(n.dose * S.ha).toFixed(0)} kg</b> N · <b>${(pk.P2O5 * S.ha).toFixed(0)} kg</b> P₂O₅ · <b>${(pk.K2O * S.ha).toFixed(0)} kg</b> K₂O<br><small>💰 Custo, escolha dos adubos comerciais (ureia, MAP, KCl…) e dose economicamente ótima: <b>versão Pro</b>.</small></div>
       <div class="aviso">Recomendação média para todo o talhão, com base em métodos de referência. Confirme com um engenheiro agrônomo antes de aplicar.</div>`;
   }
+
+  // ---------- relatório (PDF via impressão) ----------
+  function svgTalhao() {
+    const ring = S.pol.geometry.coordinates[0], xs = ring.map(p => p[0]), ys = ring.map(p => p[1]);
+    const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+    const k = Math.cos(S.cent[1] * Math.PI / 180), w = (maxx - minx) * k, h = maxy - miny, sc = 150 / Math.max(w, h);
+    const pts = ring.map(p => `${(10 + (p[0] - minx) * k * sc).toFixed(1)},${(10 + (maxy - p[1]) * sc).toFixed(1)}`).join(' ');
+    return `<svg width="170" height="170" viewBox="0 0 170 170"><polygon points="${pts}" fill="#e7f2ea" stroke="#1f6b3a" stroke-width="2"/></svg>`;
+  }
+  $('#bRelatorio').onclick = () => {
+    if (!S.pol) return toast('Defina primeiro o talhão');
+    recomendar(); const R = S.res; if (!R) return;
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    let clima = '<tr><td colspan="2">Não consultado (abra o passo 4 – Clima antes de gerar o relatório).</td></tr>';
+    if (S.clima) { const p = S.clima.properties.parameter, d = [31,28,31,30,31,30,31,31,30,31,30,31], M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      clima = `<tr><td>Chuva média anual</td><td>${M.reduce((a, m, i) => a + p.PRECTOTCORR[m] * d[i], 0).toFixed(0)} mm</td></tr><tr><td>Temperatura média anual</td><td>${p.T2M.ANN.toFixed(1)} °C</td></tr>`; }
+    $('#relatorio').innerHTML = `
+      <div class="top"><div><h1>🌱 Relatório de calagem e adubação</h1><div>Adubação Brasil · versão gratuita (beta) · ${hoje}</div></div>${svgTalhao()}</div>
+      <h2>Talhão</h2><table><tr><td>Área</td><td>${S.ha.toFixed(1)} ha</td></tr><tr><td>Centro (lat, lon)</td><td>${S.cent[1].toFixed(5)}, ${S.cent[0].toFixed(5)}</td></tr></table>
+      <div class="f">Fonte: área geodésica calculada sobre o polígono (Turf.js).</div>
+      <h2>Cultura</h2><table><tr><td>Cultura</td><td>${R.c.nome}</td></tr><tr><td>Produtividade esperada</td><td>${num('prod')} ${R.c.unidade} (${R.tha.toFixed(1)} t/ha)</td></tr>
+        ${R.k === 'milho' ? `<tr><td>Soja na safra anterior</td><td>${$('#sojaAnt').checked ? 'sim' : 'não'}</td></tr>` : ''}${R.k === 'cana' ? `<tr><td>Ciclo</td><td>${$('#ciclo').value === 'planta' ? 'cana-planta' : 'cana-soca'}</td></tr>` : ''}</table>
+      <h2>Análise de solo (0–20 cm)</h2><table><tr><th>pH CaCl₂</th><th>M.O. g/dm³</th><th>P resina mg/dm³</th><th>K</th><th>Ca</th><th>Mg</th><th>H+Al</th><th>Al</th></tr>
+        <tr><td>${num('ph')}</td><td>${num('mo')}</td><td>${num('P')}</td><td>${num('K')}</td><td>${num('Ca')}</td><td>${num('Mg')}</td><td>${num('HAl')}</td><td>${num('Al')}</td></tr></table>
+      <div>SB ${R.s.SB.toFixed(1)} · CTC ${R.s.CTC.toFixed(1)} mmolc/dm³ · V% ${R.s.V.toFixed(0)}% · m% ${R.s.m.toFixed(0)}%</div><div class="f">Fonte: ${FONTE.soloCalc}</div>
+      <h2>Clima do local</h2><table>${clima}</table><div class="f">Fonte: ${FONTE.clima}</div>
+      <h2>Recomendação</h2><table><tr><th>Insumo</th><th>Dose</th><th>Total no talhão</th><th>Fonte / método</th></tr>
+        <tr><td>Calcário (PRNT ${num('prnt')}%, ${$('#prof').value} cm)</td><td>${R.nc.toFixed(1)} t/ha</td><td>${(R.nc * S.ha).toFixed(1)} t</td><td class="f">${FONTE.calagem} V% ${R.s.V.toFixed(0)}% → ${R.c.v2}%.</td></tr>
+        <tr><td>Nitrogênio (N)</td><td>${R.n.dose.toFixed(0)} kg/ha</td><td>${(R.n.dose * S.ha).toFixed(0)} kg</td><td class="f">${R.n.nota ? R.n.nota + '. ' : ''}${FONTE.balanco}</td></tr>
+        <tr><td>Fósforo (P₂O₅)</td><td>${R.pk.P2O5.toFixed(0)} kg/ha</td><td>${(R.pk.P2O5 * S.ha).toFixed(0)} kg</td><td class="f">Teor ${R.pk.classeP}. ${FONTE.classes} ${FONTE.balanco}</td></tr>
+        <tr><td>Potássio (K₂O)</td><td>${R.pk.K2O.toFixed(0)} kg/ha</td><td>${(R.pk.K2O * S.ha).toFixed(0)} kg</td><td class="f">Teor ${R.pk.classeK}. ${FONTE.classes} ${FONTE.balanco}</td></tr></table>
+      <div class="avisoR"><b>Aviso:</b> recomendação média para todo o talhão, gerada por ferramenta de apoio em versão beta com métodos de referência. Deve ser confirmada por um engenheiro agrônomo antes da aplicação.</div>
+      <div class="f" style="margin-top:8px">Gerado em johnnym1986.github.io/adubacao-brasil · Versão Pro: mapas de satélite, taxa variável, leitura do laudo, vários talhões.</div>`;
+    setTimeout(() => window.print(), 150);
+  };
+
   // ---------- salvar / abrir ----------
   $('#bSalvar').onclick = () => {
     if (!S.pol) return toast('Defina primeiro o talhão');

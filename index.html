@@ -43,6 +43,17 @@ footer{max-width:960px;margin:0 auto;padding:16px 12px 40px;font-size:13px;color
 footer a{color:var(--v)}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 14px;border-radius:8px;z-index:2000}
 .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+#relatorio{display:none}
+@media print{
+  body{background:#fff;font-size:12pt}
+  header,#nav,main,footer,#toast,.leaflet-container{display:none!important}
+  #relatorio{display:block;padding:0 6mm;color:#111}
+  @page{size:A4;margin:14mm}
+}
+#relatorio h1{font-size:20pt;color:#1f6b3a;margin:0}#relatorio h2{font-size:13pt;color:#1f6b3a;border-bottom:2px solid #1f6b3a;padding-bottom:2px;margin:14px 0 6px}
+#relatorio table{border-collapse:collapse;width:100%;font-size:10.5pt}#relatorio td,#relatorio th{border:1px solid #cfd6d0;padding:4px 6px;text-align:left;vertical-align:top}
+#relatorio th{background:#e7f2ea}#relatorio .f{font-size:8.5pt;color:#555}#relatorio .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+#relatorio .avisoR{border:1px solid #f2b705;background:#fff6dc;padding:6px 8px;font-size:9.5pt;margin-top:10px}
 </style>
 </head>
 <body>
@@ -113,6 +124,9 @@ footer a{color:var(--v)}
   <h2>5 · Recomendação</h2>
   <div id="res"></div>
   <div class="pro-card" style="margin-top:14px"><h3>🛰️ Mapa de vigor real do seu talhão – versão Pro</h3>Zonas de manejo calculadas com imagens de satélite Sentinel-2 (Copernicus) de várias safras, para aplicar calcário e adubo em taxa variável. <a href="#" id="verPro">Conheça a versão Pro →</a></div>
+  <h3>Relatório</h3>
+  <div class="bar"><button class="b" id="bRelatorio">📄 Gerar relatório (PDF)</button></div>
+  <p class="nota">Abre a janela de impressão: escolha <b>Salvar como PDF</b> (no celular: Compartilhar → Imprimir → Salvar PDF).</p>
   <h3>Guardar seu talhão</h3>
   <div class="bar">
     <button class="b" id="bSalvar">Salvar meu talhão (.json)</button>
@@ -140,6 +154,7 @@ footer a{color:var(--v)}
   <p><b>Aviso:</b> ferramenta de apoio, em versão beta. As recomendações usam métodos de referência (calagem por saturação por bases; P e K por classes de teor e exportação da cultura) e devem ser confirmadas por um engenheiro agrônomo antes da aplicação.</p>
   <p><b>Fontes:</b> clima <a href="https://power.larc.nasa.gov/">NASA POWER</a>; classes de interpretação e método de calagem conforme as recomendações para o Estado de São Paulo (IAC, Boletim 100); imagens de satélite © Esri, Maxar, Earthstar Geographics; mapa © OpenStreetMap. Código e dados abertos no <a href="https://github.com/JohnnyM1986/adubacao-brasil">GitHub</a>.</p>
 </footer>
+<div id="relatorio"></div>
 <div id="toast" hidden></div>
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/turf.min.js"></script>
@@ -148,6 +163,6 @@ footer a{color:var(--v)}
 <script src="vendor/togeojson.umd.js"></script>
 <script src="vendor/shp.min.js"></script>
 <script src="motore.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

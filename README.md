@@ -10,6 +10,7 @@ Ferramenta gratuita de recomendação de **calagem e adubação** para **milho, 
 3. Análise de solo (padrão SP) → SB, CTC, V%, m%
 4. Clima do local (NASA POWER, médias de longo prazo)
 5. Recomendação: calcário (saturação por bases), N, P₂O₅, K₂O — **cada resultado mostra a sua fonte**
+6. Relatório em PDF (impressão do navegador → Salvar como PDF)
 
 ## Fontes e métodos
 | Item | Fonte |
